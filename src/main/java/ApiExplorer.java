@@ -5,5 +5,6 @@ public class ApiExplorer {
     public static void main(String[] args) throws IOException, SQLException {
         WifiService wifiService = new WifiService();
         wifiService.saveWifiData();
+        wifiService.getWifiInfos();
     }
 }

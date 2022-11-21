@@ -1,4 +1,5 @@
 import com.example.zerobasestudy.ApiData;
+import com.example.zerobasestudy.WifiInfo;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -6,10 +7,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class WifiService {
     private static final String SQLITE_JDBC_DRIVER = "org.sqlite.JDBC";
@@ -109,7 +109,7 @@ public class WifiService {
                 pstmt = connection.prepareStatement(insertSql);
 
                 // 입력 데이터 매핑
-                for (ApiData.WifiInfo data : wifiInfo.TbPublicWifiInfo.row) {
+                for (WifiInfo data : wifiInfo.TbPublicWifiInfo.row) {
                     pstmt.setObject(1, data.LAT);
                     pstmt.setObject(2, data.LNT);
                     pstmt.setObject(3, data.WORK_DTTM);
@@ -152,5 +152,34 @@ public class WifiService {
             }
         }
         closeConnection();
+    }
+
+    public List<WifiInfo> getWifiInfos() throws SQLException {
+        List<WifiInfo> wifiInfos = new ArrayList<>();
+        Connection connection = createConnection();
+        ResultSet resultSet = connection.prepareStatement("select * from Wifi_Info;").executeQuery();
+        while (resultSet.next()) {
+            WifiInfo wifiInfo = new WifiInfo();
+            wifiInfo.LNT = resultSet.getString("lNT");
+            wifiInfo.LAT = resultSet.getString("LAT");
+            wifiInfo.WORK_DTTM = resultSet.getString("WORK_DTTM");
+            wifiInfo.X_SWIFI_ADRES1 = resultSet.getString("ADRES1");
+            wifiInfo.X_SWIFI_ADRES2 = resultSet.getString("ADRES2");
+            wifiInfo.X_SWIFI_CMCWR = resultSet.getString("CMCWR");
+            wifiInfo.X_SWIFI_CNSTC_YEAR = resultSet.getString("CNSTC_YEAR");
+            wifiInfo.X_SWIFI_INOUT_DOOR = resultSet.getString("INOUT_DOOR");
+            wifiInfo.X_SWIFI_INSTL_FLOOR = resultSet.getString("INSTL_FLOOR");
+            wifiInfo.X_SWIFI_INSTL_MBY = resultSet.getString("INSTL_MBY");
+            wifiInfo.X_SWIFI_INSTL_TY = resultSet.getString("INSTL_TY");
+            wifiInfo.X_SWIFI_MAIN_NM = resultSet.getString("MAIN_NM");
+            wifiInfo.X_SWIFI_MGR_NO = resultSet.getString("MGR_NO");
+            wifiInfo.X_SWIFI_REMARS3 = resultSet.getString("REMARS3");
+            wifiInfo.X_SWIFI_SVC_SE = resultSet.getString("SVC_SE");
+            wifiInfo.X_SWIFI_WRDOFC = resultSet.getString("WRDOFC");
+
+            wifiInfos.add(wifiInfo);
+        }
+        closeConnection();
+        return wifiInfos;
     }
 }
