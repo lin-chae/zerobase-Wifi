@@ -1,3 +1,5 @@
+package com.example.zerobasestudy;
+
 import com.example.zerobasestudy.ApiData;
 import com.example.zerobasestudy.WifiInfo;
 import com.google.gson.Gson;
@@ -40,8 +42,6 @@ public class WifiService {
             // DB 연결 객체 생성
             this.conn = DriverManager.getConnection(this.url);
 
-            // 로그 출력
-            System.out.println("CONNECTED");
 
             // 옵션 설정
             //   - 자동 커밋
@@ -62,14 +62,12 @@ public class WifiService {
             e.printStackTrace();
         } finally {
             this.conn = null;
-
-            // 로그 출력
-            System.out.println("CLOSED");
         }
     }
 
-    public void saveWifiData() throws IOException, SQLException {
+    public int saveWifiData() throws IOException, SQLException {
         int start = 1;
+        int count=0;
         Connection connection = createConnection();
         connection.createStatement().execute("delete from Wifi_Info");
         while (true) {
@@ -79,7 +77,6 @@ public class WifiService {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Content-type", "application/xml");
-            System.out.println("Response code: " + conn.getResponseCode()); /* 연결 자체에 대한 확인이 필요하므로 추가합니다.*/
             BufferedReader rd;
 
             // 서비스코드가 정상이면 200~300사이의 숫자가 나옵니다.
@@ -100,8 +97,7 @@ public class WifiService {
             if (wifiInfo.TbPublicWifiInfo == null) {
                 break;
             }
-            System.out.println(wifiInfo.TbPublicWifiInfo.row.size());
-
+            count+=wifiInfo.TbPublicWifiInfo.row.size();
             PreparedStatement pstmt = null;
 
             try {
@@ -133,8 +129,6 @@ public class WifiService {
                 connection.commit();
 
             } catch (SQLException e) {
-                // 오류출력
-                System.out.println(e.getMessage());
 
                 // 트랜잭션 ROLLBACK
                 if (connection != null) {
@@ -152,6 +146,7 @@ public class WifiService {
             }
         }
         closeConnection();
+        return count;
     }
 
     public List<WifiInfo> getWifiInfos() throws SQLException {
@@ -180,6 +175,7 @@ public class WifiService {
             wifiInfos.add(wifiInfo);
         }
         closeConnection();
+        System.out.println("hi");
         return wifiInfos;
     }
 }

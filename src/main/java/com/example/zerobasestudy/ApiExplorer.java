@@ -1,3 +1,7 @@
+package com.example.zerobasestudy;
+
+import com.example.zerobasestudy.WifiService;
+
 import java.io.IOException;
 import java.sql.SQLException;
 

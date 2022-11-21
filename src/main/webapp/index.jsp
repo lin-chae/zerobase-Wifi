@@ -13,7 +13,7 @@
 <a>|</a>
 <a href="">위치 히스토리 목록</a>
 <a>|</a>
-<a href="">Open API 와이파이 정보 가져오기</a>
+<a href="openAPI.jsp">Open API 와이파이 정보 가져오기</a>
 <br><br>
 <label for="latitude">LAT: </label><input id="latitude">
 <label for="longitude">LNT: </label><input id="longitude">
