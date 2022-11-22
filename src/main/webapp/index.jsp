@@ -1,11 +1,19 @@
 <%@ page import="com.example.zerobasestudy.WifiService" %>
 <%@ page import="com.example.zerobasestudy.WifiInfo" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Objects" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
 <head>
     <title>와이파이 정보 구하기</title>
+    <script>
+        function myLocation() {
+            navigator.geolocation.getCurrentPosition((position) => {
+                location.href = 'index.jsp?latitude=' + position.coords.latitude + "&longitude=" + position.coords.longitude;
+            });
+        }
+    </script>
 </head>
 <body>
 <h1><%= "와이파이 정보 구하기" %>
@@ -19,8 +27,13 @@
 <a href="openAPI.jsp">Open API 와이파이 정보 가져오기</a>
 <br><br>
 <form action="index.jsp">
-    <label for="latitude">LAT: </label><input type="text" value="0.0" id="latitude" name="latitude">
-    <label for="longitude">LNT: </label><input type="text" value="0.0" id="longitude" name="longitude">
+    <label for="latitude">LAT: </label><input type="text"
+                                              value="<%=Objects.requireNonNullElse(request.getParameter("latitude"),"0.0")%>"
+                                              id="latitude" name="latitude">
+    <label for="longitude">LNT: </label><input type="text"
+                                               value="<%=Objects.requireNonNullElse(request.getParameter("longitude"),"0.0")%>"
+                                               id="longitude" name="longitude">
+    <button type="button" onclick="myLocation()">내 위치 가져오기</button>
     <input type="submit" value="근처 WIFI 정보 보기">
 </form>
 <%
@@ -52,7 +65,7 @@
     </thead>
     <tbody>
     <%
-        if (lat==null||lnt==null) {
+        if (lat == null || lnt == null) {
     %>
     <tr>
         <td colspan="17">위치 정보를 입력한 후에 조회해 주세요.</td>
@@ -60,11 +73,11 @@
     <%
     } else {
         WifiService wifiService = new WifiService();
-        List<WifiInfo> wifiInfos = wifiService.getWifiInfos(lat,lnt);
+        List<WifiInfo> wifiInfos = wifiService.getWifiInfos(lat, lnt);
         for (WifiInfo wifiInfo : wifiInfos) {
     %>
     <tr>
-        <td><%=Math.round(wifiInfo.distance*10000)/10000.0%>
+        <td><%=Math.round(wifiInfo.distance * 10000) / 10000.0%>
         </td>
         <td><%=wifiInfo.X_SWIFI_MGR_NO%>
         </td>
