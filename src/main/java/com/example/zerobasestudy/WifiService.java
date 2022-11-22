@@ -1,14 +1,14 @@
 package com.example.zerobasestudy;
 
-import com.example.zerobasestudy.ApiData;
-import com.example.zerobasestudy.WifiInfo;
 import com.google.gson.Gson;
+import org.sqlite.SQLiteConfig;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +16,10 @@ import java.util.List;
 public class WifiService {
     private static final String SQLITE_JDBC_DRIVER = "org.sqlite.JDBC";
     private static final String SQLITE_DB_URL = "jdbc:sqlite:";
-
     //  - Database 옵션 변수
     private static final boolean OPT_AUTO_COMMIT = false;
-    final String insertSql = "INSERT INTO Wifi_Info (" + "\n" + "LNT, LAT, WORK_DTTM, ADRES1, ADRES2, CMCWR, CNSTC_YEAR,INOUT_DOOR, INSTL_FLOOR, INSTL_MBY, INSTL_TY, MAIN_NM, MGR_NO, REMARS3, SVC_SE, WRDOFC" + ") VALUES (                           " + "\n" + "    ?,                               " + "\n" + "    ?,                               " + "\n" + "    ?,                               " + "\n" + "    ?,                               " + "\n" + "    ?,                               " + "\n" + "    ?,                               " + "\n" + "    ?,?,?,?,?,?,?,?,?,?              " + "\n" + ");";
+    final String insertSql = "INSERT INTO Wifi_Info (" + "\n" + " LAT, LNT, WORK_DTTM, ADRES1, ADRES2, CMCWR, CNSTC_YEAR,INOUT_DOOR, INSTL_FLOOR, INSTL_MBY, INSTL_TY, MAIN_NM, MGR_NO, REMARS3, SVC_SE, WRDOFC" + ") VALUES (                           " + "\n" + "    ?,                               " + "\n" + "    ?,                               " + "\n" + "    ?,                               " + "\n" + "    ?,                               " + "\n" + "    ?,                               " + "\n" + "    ?,                               " + "\n" + "    ?,?,?,?,?,?,?,?,?,?              " + "\n" + ");";
+    final String historySql = "INSERT INTO History(" + "\n" + "My_LAT, My_LNT" + ") VALUES (" + "?,?" + "\n" + ");";
     // 변수 설정
     //   - Database 접속 정보 변수
     private Connection conn = null;
@@ -38,10 +38,10 @@ public class WifiService {
         try {
             // JDBC Driver Class 로드
             Class.forName(this.driver);
-
             // DB 연결 객체 생성
-            this.conn = DriverManager.getConnection(this.url);
-
+            SQLiteConfig config = new SQLiteConfig();
+            config.setEncoding(SQLiteConfig.Encoding.UTF8);
+            this.conn = DriverManager.getConnection(this.url, config.toProperties());
 
             // 옵션 설정
             //   - 자동 커밋
@@ -67,7 +67,7 @@ public class WifiService {
 
     public int saveWifiData() throws IOException, SQLException {
         int start = 1;
-        int count=0;
+        int count = 0;
         Connection connection = createConnection();
         connection.createStatement().execute("delete from Wifi_Info");
         while (true) {
@@ -81,9 +81,9 @@ public class WifiService {
 
             // 서비스코드가 정상이면 200~300사이의 숫자가 나옵니다.
             if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
-                rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                rd = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
             } else {
-                rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                rd = new BufferedReader(new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8));
             }
             StringBuilder sb = new StringBuilder();
             String line;
@@ -97,7 +97,7 @@ public class WifiService {
             if (wifiInfo.TbPublicWifiInfo == null) {
                 break;
             }
-            count+=wifiInfo.TbPublicWifiInfo.row.size();
+            count += wifiInfo.TbPublicWifiInfo.row.size();
             PreparedStatement pstmt = null;
 
             try {
@@ -149,10 +149,12 @@ public class WifiService {
         return count;
     }
 
-    public List<WifiInfo> getWifiInfos() throws SQLException {
+    public List<WifiInfo> getWifiInfos(String lat, String lnt) throws SQLException {
         List<WifiInfo> wifiInfos = new ArrayList<>();
         Connection connection = createConnection();
-        ResultSet resultSet = connection.prepareStatement("select * from Wifi_Info;").executeQuery();
+        ResultSet resultSet = connection.prepareStatement("select  ( 6371 * acos( cos( radians(LAT) ) * cos( radians( " + lat + " ) )\n" +
+                "                           * cos(radians(LNT)-radians( " + lnt + " ))\n" +
+                "    + sin( radians(LAT) ) * sin( radians( " + lat + " ) ) ) ) AS distance, * from Wifi_Info order by distance asc limit 20;").executeQuery();
         while (resultSet.next()) {
             WifiInfo wifiInfo = new WifiInfo();
             wifiInfo.LNT = resultSet.getString("lNT");
@@ -171,11 +173,51 @@ public class WifiService {
             wifiInfo.X_SWIFI_REMARS3 = resultSet.getString("REMARS3");
             wifiInfo.X_SWIFI_SVC_SE = resultSet.getString("SVC_SE");
             wifiInfo.X_SWIFI_WRDOFC = resultSet.getString("WRDOFC");
+            wifiInfo.distance = resultSet.getDouble("distance");
 
             wifiInfos.add(wifiInfo);
         }
+
+        PreparedStatement preparedStatement = null;
+        // PreparedStatement 생성
+        preparedStatement = connection.prepareStatement(historySql);
+        History history = new History();
+        preparedStatement.setObject(1, lat);
+        preparedStatement.setObject(2, lnt);
+        // 쿼리 실행
+        preparedStatement.executeUpdate();
+        // 트랜잭션 COMMIT
+        connection.commit();
+
         closeConnection();
-        System.out.println("hi");
         return wifiInfos;
+    }
+
+    public List<History> getHistorys() throws SQLException {
+        List<History> historys = new ArrayList<>();
+        Connection connection = createConnection();
+        ResultSet resultSet = connection.prepareStatement("select * from History order by ID desc;").executeQuery();
+        while (resultSet.next()) {
+            History history = new History();
+            history.ID = resultSet.getString("ID");
+            history.My_LAT = resultSet.getString("My_LAT");
+            history.My_LNT = resultSet.getString("My_LNT");
+            history.My_Work_Date = resultSet.getString("Datetime");
+
+            historys.add(history);
+        }
+
+        closeConnection();
+        return historys;
+    }
+
+    public void deleteHistory(Integer delID) throws SQLException {
+        Connection connection = createConnection();
+        PreparedStatement preparedStatement=null;
+        preparedStatement=connection.prepareStatement("delete from History where ID =" + delID+ ";");
+        preparedStatement.executeUpdate();
+        connection.commit();
+
+        closeConnection();
     }
 }

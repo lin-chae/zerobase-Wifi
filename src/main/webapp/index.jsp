@@ -1,3 +1,6 @@
+<%@ page import="com.example.zerobasestudy.WifiService" %>
+<%@ page import="com.example.zerobasestudy.WifiInfo" %>
+<%@ page import="java.util.List" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
@@ -11,13 +14,19 @@
 
 <a href="index.jsp">home</a>
 <a>|</a>
-<a href="">위치 히스토리 목록</a>
+<a href="history.jsp">위치 히스토리 목록</a>
 <a>|</a>
 <a href="openAPI.jsp">Open API 와이파이 정보 가져오기</a>
 <br><br>
-<label for="latitude">LAT: </label><input id="latitude">
-<label for="longitude">LNT: </label><input id="longitude">
-<input type="button" value="근처 WIFI 정보 보기">
+<form action="index.jsp">
+    <label for="latitude">LAT: </label><input type="text" value="0.0" id="latitude" name="latitude">
+    <label for="longitude">LNT: </label><input type="text" value="0.0" id="longitude" name="longitude">
+    <input type="submit" value="근처 WIFI 정보 보기">
+</form>
+<%
+    String lat = request.getParameter("latitude");
+    String lnt = request.getParameter("longitude");
+%>
 <br>
 <table border="1">
     <thead>
@@ -42,9 +51,58 @@
     </tr>
     </thead>
     <tbody>
+    <%
+        if (lat==null||lnt==null) {
+    %>
     <tr>
         <td colspan="17">위치 정보를 입력한 후에 조회해 주세요.</td>
     </tr>
+    <%
+    } else {
+        WifiService wifiService = new WifiService();
+        List<WifiInfo> wifiInfos = wifiService.getWifiInfos(lat,lnt);
+        for (WifiInfo wifiInfo : wifiInfos) {
+    %>
+    <tr>
+        <td><%=Math.round(wifiInfo.distance*10000)/10000.0%>
+        </td>
+        <td><%=wifiInfo.X_SWIFI_MGR_NO%>
+        </td>
+        <td><%=wifiInfo.X_SWIFI_WRDOFC%>
+        </td>
+        <td><%=wifiInfo.X_SWIFI_MAIN_NM%>
+        </td>
+        <td><%=wifiInfo.X_SWIFI_ADRES1%>
+        </td>
+        <td><%=wifiInfo.X_SWIFI_ADRES2%>
+        </td>
+        <td><%=wifiInfo.X_SWIFI_INSTL_FLOOR%>
+        </td>
+        <td><%=wifiInfo.X_SWIFI_INSTL_TY%>
+        </td>
+        <td><%=wifiInfo.X_SWIFI_INSTL_MBY%>
+        </td>
+        <td><%=wifiInfo.X_SWIFI_SVC_SE%>
+        </td>
+        <td><%=wifiInfo.X_SWIFI_CMCWR%>
+        </td>
+        <td><%=wifiInfo.X_SWIFI_CNSTC_YEAR%>
+        </td>
+        <td><%=wifiInfo.X_SWIFI_INOUT_DOOR%>
+        </td>
+        <td><%=wifiInfo.X_SWIFI_REMARS3%>
+        </td>
+        <td><%=wifiInfo.LAT%>
+        </td>
+        <td><%=wifiInfo.LNT%>
+        </td>
+        <td><%=wifiInfo.WORK_DTTM%>
+        </td>
+    </tr>
+    <%
+            }
+        }
+    %>
     </tbody>
 </table>
 </body>
