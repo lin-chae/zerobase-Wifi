@@ -8,6 +8,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
+    <link href="style.css" rel="stylesheet" type="text/css"/>
     <title>와이파이 정보 구하기</title>
 </head>
 <body>
@@ -15,7 +16,7 @@
     WifiService wifiService = new WifiService();
     int count = wifiService.saveWifiData();
 %></p>
-<h1><%= count %>개의 WIFI 정보를 정상적으로 저장하였습니다.</h1>
-<a href="index.jsp">홈으로 돌아가기</a>
+<h1><center><%= count %>개의 WIFI 정보를 정상적으로 저장하였습니다.</center></h1>
+<a href="index.jsp"><center>홈 으로 가기</center></a>
 </body>
 </html>

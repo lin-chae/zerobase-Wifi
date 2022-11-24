@@ -6,11 +6,13 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link href="style.css" rel="stylesheet" type="text/css" />
     <title>와이파이 정보 구하기</title>
     <script>
         function myLocation() {
             navigator.geolocation.getCurrentPosition((position) => {
-                location.href = 'index.jsp?latitude=' + position.coords.latitude + "&longitude=" + position.coords.longitude;
+                document.getElementById('latitude').value = position.coords.latitude
+                document.getElementById('longitude').value = position.coords.longitude
             });
         }
     </script>
@@ -30,21 +32,22 @@
     <label for="latitude">LAT: </label><input type="text"
                                               value="<%=Objects.requireNonNullElse(request.getParameter("latitude"),"0.0")%>"
                                               id="latitude" name="latitude">
+    ,
     <label for="longitude">LNT: </label><input type="text"
                                                value="<%=Objects.requireNonNullElse(request.getParameter("longitude"),"0.0")%>"
                                                id="longitude" name="longitude">
     <button type="button" onclick="myLocation()">내 위치 가져오기</button>
-    <input type="submit" value="근처 WIFI 정보 보기">
+    <button type="submit">근처 WIFI 정보 보기</button>
 </form>
 <%
     String lat = request.getParameter("latitude");
     String lnt = request.getParameter("longitude");
 %>
 <br>
-<table border="1">
+<table width="100%">
     <thead>
-    <tr>
-        <th>거리(Km)</th>
+    <tr id="tbtitle">
+        <th>거리<br>(Km)</th>
         <th>관리번호</th>
         <th>자치구</th>
         <th>와이파이명</th>
@@ -68,7 +71,9 @@
         if (lat == null || lnt == null) {
     %>
     <tr>
-        <td colspan="17">위치 정보를 입력한 후에 조회해 주세요.</td>
+        <td colspan="17" style="padding: 20px;" font-weight: bold;>
+            <center>위치 정보를 입력한 후에 조회해 주세요.</center>
+        </td>
     </tr>
     <%
     } else {

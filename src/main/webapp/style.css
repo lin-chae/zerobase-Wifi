@@ -1,0 +1,32 @@
+body{
+    font-weight: bold;
+}
+a {
+    color: purple;
+}
+a:active {
+    color : red;
+}
+th{
+    background-color :#2FB48C;
+    color:white;
+}
+th, td {
+    padding: 5px;
+}
+table{
+    width: 100%;
+}
+button{
+    font-weight: bold;
+}
+tbody tr:nth-child(2n) {
+    background-color: darkgray;
+}
+
+tbody tr:nth-child(2n+1) {
+    background-color: whitesmoke;
+}
+tbody tr:hover {
+    background-color: grey;
+}
